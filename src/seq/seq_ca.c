@@ -227,7 +227,10 @@ LOCAL void proc_db_events(pvValue *pValue, pvType type, CHAN *pDB,
 	/* Copy error message (only when severity indicates error) */
 	if (pDB->severity != pvSevrNONE)
 	{
-	    pDB->message = pvVarGetMess(pDB->pvid);
+            if (pvVarGetMess(pDB->pvid))
+                pDB->message = Strdcpy(pDB->message, pvVarGetMess(pDB->pvid));
+            else
+                pDB->message = Strdcpy(pDB->message, "unknown");
 	}
 
 	/* Get ptr to the state program that owns this db entry */
