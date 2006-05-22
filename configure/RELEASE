@@ -1,0 +1,20 @@
+#RELEASE Location of external products
+#Macro substitution is not allowed in the location defintions
+
+# You should do a "gnumake clean uninstall install" in the application
+# top directory each time changes are made to this file
+
+# If you don't want to install into $(TOP) then
+# define INSTALL_LOCATION_APP here
+INSTALL_LOCATION_APP=$(TOP)/../..
+
+EPICS_BASE=/afs/slac/g/lcls/epics/base
+TEMPLATE_TOP=$(EPICS_BASE)/templates/makeBaseApp/top
+SNCSEQ=/afs/slac/g/lcls/epics/site
+#
+# Enable appropriate process variable access methods
+#
+PVCA   = TRUE
+PVFILE = FALSE
+PVTKL  = FALSE
+
