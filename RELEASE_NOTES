@@ -1,2 +1,21 @@
-R1-0-0:  Initial release of EPICS sequencer code; maintained
-by Lazmo at SLAC.
+#==============================================================
+#
+#  Name: RELEASE_NOTES
+#
+#  Rem: This files describes release notes for
+#       the Acromag ip231 driver and device support.
+#
+#  Auth: yy-mmm-2007, Author's Name      (USERNAME)
+#  Rev:  dd-mmm-yyyy, Reviewer's Name    (USERNAME)
+#--------------------------------------------------------------
+#  Mod:
+#        30-Aug-2007, K. Luchini         (LUCHINI):
+#          release ip231-R1-0-1
+#
+#==============================================================
+#
+seq-R1-0-0: Retag using LCLS standard. 
+            add header to this file.
+
+R1-0-0:     Initial release of EPICS sequencer code; maintained
+            by Lazmo at SLAC.
