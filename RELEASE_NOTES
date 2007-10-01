@@ -14,6 +14,11 @@
 #
 #==============================================================
 #
+seq-R1-0-1: Retag using LCLS standard.
+            add header to this file.
+            Built against base-R3-14-9-lcls1 (RTEMS 4.7.1)
+
+
 seq-R1-0-0: Retag using LCLS standard. 
             add header to this file.
             Built against base-R3-14-8-2-lcls2 (RTEMS 4.7)
