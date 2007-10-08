@@ -10,6 +10,7 @@
 #--------------------------------------------------------------
 #  Mod:
 #        08-Oct-2007, K. Luchini         (LUCHINI):
+#          release seq-R2-0-1
 #          release seq-R2-0-0
 #          release seq-R1-0-2
 #          release seq-R1-0-1
@@ -18,6 +19,8 @@
 #
 #==============================================================
 #
+seq-R2-0-1: Build agains base-R3-14-9-lcls1 (RTEMS 4.7.1)
+
 seq-R2-0-0: Retag with proper version number
 
 seq-R1-0-1: Retag using LCLS standard.
