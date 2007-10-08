@@ -10,12 +10,16 @@
 #--------------------------------------------------------------
 #  Mod:
 #        08-Oct-2007, K. Luchini         (LUCHINI):
+#          release seq-R2-0-0
+#          release seq-R1-0-2
 #          release seq-R1-0-1
 #        30-Aug-2007, K. Luchini         (LUCHINI):
 #          release seq-R1-0-0
 #
 #==============================================================
 #
+seq-R2-0-0: Retag with proper version number
+
 seq-R1-0-1: Retag using LCLS standard.
             add header to this file.
             Built against base-R3-14-8-2-lcls2 (RTEMS 4.7.1)
