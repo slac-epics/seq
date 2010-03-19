@@ -1,4 +1,4 @@
-/* pvAlarm.h,v 1.1.1.1 2000/04/04 03:22:15 wlupton Exp
+/* $Id: pvAlarm.h,v 1.1.1.1 2000/04/04 03:22:15 wlupton Exp $
  *
  * Definitions for EPICS sequencer message system-independent status and
  * severity (alarms).
@@ -60,7 +60,7 @@ typedef enum {
 #endif /* INCLpvAlarmh */
 
 /*
- * pvAlarm.h,v
+ * $Log: pvAlarm.h,v $
  * Revision 1.1.1.1  2000/04/04 03:22:15  wlupton
  * first commit of seq-2-0-0
  *

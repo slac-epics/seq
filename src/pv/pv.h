@@ -1,4 +1,4 @@
-/* pv.h,v 1.3 2001/02/16 18:45:39 mrk Exp
+/* $Id: pv.h,v 1.3 2001/02/16 18:45:39 mrk Exp $
  *
  * Definitions for EPICS sequencer message system-independent library (pv)
  * (NB, "pv" = "process variable").
@@ -346,7 +346,7 @@ epicsShareFunc char * epicsShareAPI Strdcpy( char *dst, const char *src );
 #endif /* INCLpvh */
 
 /*
- * pv.h,v
+ * $Log: pv.h,v $
  * Revision 1.3  2001/02/16 18:45:39  mrk
  * changes for latest version of 3.14
  *

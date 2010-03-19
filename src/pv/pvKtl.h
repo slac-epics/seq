@@ -1,4 +1,4 @@
-/* pvKtl.h,v 1.2 2000/04/14 21:53:29 jba Exp
+/* $Id: pvKtl.h,v 1.2 2000/04/14 21:53:29 jba Exp $
  *
  * Definitions for EPICS sequencer KTL library (pvKtl)
  *
@@ -228,7 +228,7 @@ private:
 #endif /* INCLpvKtlh */
 
 /*
- * pvKtl.h,v
+ * $Log: pvKtl.h,v $
  * Revision 1.2  2000/04/14 21:53:29  jba
  * Changes for win32 build.
  *

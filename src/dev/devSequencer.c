@@ -1,4 +1,4 @@
-/* devSequencer.c,v 1.4 2003/08/07 14:34:37 mrk Exp
+/* $Id: devSequencer.c,v 1.4 2003/08/07 14:34:37 mrk Exp $
  *
  * Device support to permit database access to sequencer internals
  *
@@ -424,7 +424,7 @@ LOCAL long siGetIoInitInfo(int cmd, struct stringinRecord *pRec, IOSCANPVT *ppvt
 }
 
 /*
- * devSequencer.c,v
+ * $Log: devSequencer.c,v $
  * Revision 1.4  2003/08/07 14:34:37  mrk
  * version obtained from Kukhee Kim,
  *

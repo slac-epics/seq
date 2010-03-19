@@ -1,4 +1,4 @@
-/* pvFile.h,v 1.2 2001/02/23 20:45:22 jba Exp
+/* $Id: pvFile.h,v 1.2 2001/02/23 20:45:22 jba Exp $
  *
  * Definitions for demonstration EPICS sequencer file library (pvFile)
  *
@@ -68,7 +68,7 @@ private:
 #endif /* INCLpvFileh */
 
 /*
- * pvFile.h,v
+ * $Log: pvFile.h,v $
  * Revision 1.2  2001/02/23 20:45:22  jba
  * Change for win32.
  *

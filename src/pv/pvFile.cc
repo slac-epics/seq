@@ -1,4 +1,4 @@
-/* pvFile.cc,v 1.1.1.1 2000/04/04 03:22:15 wlupton Exp
+/* $Id: pvFile.cc,v 1.1.1.1 2000/04/04 03:22:15 wlupton Exp $
  *
  * Implementation of demonstration EPICS sequencer file library (pvFile)
  *
@@ -331,7 +331,7 @@ pvStat fileVariable::monitorOff( pvCallback *callback )
 }
 
 /*
- * pvFile.cc,v
+ * $Log: pvFile.cc,v $
  * Revision 1.1.1.1  2000/04/04 03:22:15  wlupton
  * first commit of seq-2-0-0
  *
