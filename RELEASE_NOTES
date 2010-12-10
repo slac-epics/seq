@@ -30,6 +30,11 @@
 #
 #==============================================================
 #
+Our first branch against EPICS R3.14.12
+seq-R2-0-11-lcls3-br:   Build with epics-R3-14-12
+                        Build with rtems-4.9.4
+
+The RELEASES BELOW will only be found on the main trunk
 seq-R2-0-11-lcls3:   Build with epics-R3-14-8-2-lcls6
                      Build with rtems-4.9.4
 
