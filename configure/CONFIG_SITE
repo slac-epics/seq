@@ -16,6 +16,7 @@ ifeq '$(EPICS_HOST_ARCH)' 'linux-x86'
 CROSS_COMPILER_TARGET_ARCHS  =  RTEMS-beatnik
 CROSS_COMPILER_TARGET_ARCHS +=  linux-x86
 endif
+CROSS_COMPILER_TARGET_ARCHS  =  linux-x86_64
 
 # To install somewhere other than $(TOP) set this:
 #INSTALL_LOCATION = $(TOP)/../..
