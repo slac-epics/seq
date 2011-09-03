@@ -38,7 +38,9 @@ sncVersion.c: $(TOP)/configure/CONFIG
 	$(RM) $@
 	$(PERL) ../sncVersion.pl $(SEQ_VERSION) > $@
 
-clean::
+clean: src_snc_clean
+
+src_snc_clean:
 	@$(RM) snc.c snc_lex.c
 
 snc.c: snc_lex.c

@@ -64,6 +64,8 @@ endif
 	$(SNC) $(TARGET_SNCFLAGS) $(SNCFLAGS) $< -o $(@F).tmp
 	$(MV) $(@F).tmp $@
 
-clean::
+clean: snc_clean
+
+snc_clean:
 	@$(RM) $(SNC_CSRC_FILES)
 

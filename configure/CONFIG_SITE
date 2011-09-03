@@ -7,16 +7,7 @@ PVTKL  = FALSE
 
 # To restrict the architectures to cross-compile for, set this:
 #CROSS_COMPILER_TARGET_ARCHS = vxWorks-68040
-
-# PCDS
-# Restrict to 32bit linux host till 64bit problems are resolved
-#
-BUILD_FOR_HOST_ARCH	= 
-ifeq '$(EPICS_HOST_ARCH)' 'linux-x86'
-CROSS_COMPILER_TARGET_ARCHS  =  RTEMS-beatnik
-CROSS_COMPILER_TARGET_ARCHS +=  linux-x86
-endif
-CROSS_COMPILER_TARGET_ARCHS  =  linux-x86_64
+#CROSS_COMPILER_TARGET_ARCHS = RTEMS-beatnik linux-x86 linux-x86_64
 
 # To install somewhere other than $(TOP) set this:
 #INSTALL_LOCATION = $(TOP)/../..
