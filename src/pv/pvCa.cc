@@ -1,12 +1,17 @@
-/* pvCa.cc,v 1.7 2001/10/04 18:33:25 jhill Exp
- *
- * Implementation of EPICS sequencer CA library (pvCa)
+/* Implementation of EPICS sequencer CA library (pvCa)
  *
  * William Lupton, W. M. Keck Observatory
  */
 
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
+
+#ifdef _WIN32
+#  include <malloc.h>
+#elif (__STDC_VERSION__ < 199901L) && !defined(__GNUC__)
+#  include <alloca.h>
+#endif
 
 #include "alarm.h"
 #include "cadef.h"
@@ -30,10 +35,10 @@ static pvStat statFromEPICS( int stat );
 					/* EPICS status as pvStat */
 static pvType typeFromCA( int type );	/* DBR type as pvType */
 static int typeToCA( pvType type );	/* pvType as DBR type */
-static void copyToCA( pvType type, int count,
+static void copyToCA( pvType type, unsigned count,
 		      const pvValue *value, union db_access_val *caValue );
 					/* copy pvValue to DBR value */
-static void copyFromCA( int type, int count,
+static void copyFromCA( int type, unsigned count,
 			const union db_access_val *caValue, pvValue *value );
 					/* copy DBR value to pvValue */
 
@@ -193,21 +198,24 @@ epicsShareFunc caVariable::~caVariable()
  *
  * Description:
  */
-epicsShareFunc pvStat caVariable::get( pvType type, int count, pvValue *value )
+epicsShareFunc pvStat caVariable::get( pvType type, unsigned count, pvValue *value )
 {
     if ( getDebug() > 0 )
         printf( "%8p: caVariable::get( %d, %d )\n", this, type, count );
 
     int caType = typeToCA( type );
-    char *caValue = new char[dbr_size_n( caType, count )];
+#if (__STDC_VERSION__ >= 199901L) || defined(__GNUC__)
+    char caValue[dbr_size_n( caType, count )];
+#else
+    char *caValue = (char*)alloca( dbr_size_n( caType, count ) );
+#endif
     INVOKE( ca_array_get( caType, count, chid_, caValue ) );
     // ### must block so can convert value; should use ca_get_callback()
     if ( getStat() == pvStatOK )
 	INVOKE( ca_pend_io( 5.0 ) );
     if ( getStat() == pvStatOK )
 	copyFromCA( caType, count, ( union db_access_val * ) caValue, value );
-    delete [] caValue;
-	
+
     return getStat();
 }
 
@@ -218,7 +226,7 @@ epicsShareFunc pvStat caVariable::get( pvType type, int count, pvValue *value )
  *
  * Description:
  */
-epicsShareFunc pvStat caVariable::getNoBlock( pvType type, int count, pvValue *value )
+epicsShareFunc pvStat caVariable::getNoBlock( pvType type, unsigned count, pvValue *value )
 {
     if ( getDebug() > 0 )
         printf( "%8p: caVariable::getNoBlock( %d, %d )\n", this,
@@ -236,7 +244,7 @@ epicsShareFunc pvStat caVariable::getNoBlock( pvType type, int count, pvValue *v
  *
  * Description:
  */
-epicsShareFunc pvStat caVariable::getCallback( pvType type, int count,
+epicsShareFunc pvStat caVariable::getCallback( pvType type, unsigned count,
 			        pvEventFunc func, void *arg )
 {
     if ( getDebug() > 0 )
@@ -258,18 +266,21 @@ epicsShareFunc pvStat caVariable::getCallback( pvType type, int count,
  *
  * Description:
  */
-epicsShareFunc pvStat caVariable::put( pvType type, int count, pvValue *value )
+epicsShareFunc pvStat caVariable::put( pvType type, unsigned count, pvValue *value )
 {
     if ( getDebug() > 0 )
         printf( "%8p: caVariable::put( %d, %d )\n", this, type, count );
 
     int caType = typeToCA( type );
-    char *caValue = new char[dbr_size_n( caType, count )];
+#if (__STDC_VERSION__ >= 199901L) || defined(__GNUC__)
+    char caValue[dbr_size_n( caType, count )];
+#else
+    char *caValue = (char*)alloca( dbr_size_n( caType, count ) );
+#endif
     copyToCA( type, count, value, ( union db_access_val * ) caValue );
     INVOKE( ca_array_put( caType, count, chid_, caValue ) );
     if ( getStat() == pvStatOK )
 	INVOKE( ca_pend_io( 5.0 ) );
-    delete [] caValue;
     return getStat();
 }
 
@@ -280,17 +291,20 @@ epicsShareFunc pvStat caVariable::put( pvType type, int count, pvValue *value )
  *
  * Description:
  */
-epicsShareFunc pvStat caVariable::putNoBlock( pvType type, int count, pvValue *value )
+epicsShareFunc pvStat caVariable::putNoBlock( pvType type, unsigned count, pvValue *value )
 {
     if ( getDebug() > 0 )
         printf( "%8p: caVariable::putNoBlock( %d, %d )\n", this,
 		type, count );
 
     int caType = typeToCA( type );
-    char *caValue = new char[dbr_size_n( caType, count )];
+#if (__STDC_VERSION__ >= 199901L) || defined(__GNUC__)
+    char caValue[dbr_size_n( caType, count )];
+#else
+    char *caValue = (char*)alloca( dbr_size_n( caType, count ) );
+#endif
     copyToCA( type, count, value, ( union db_access_val * ) caValue );
     INVOKE( ca_array_put( caType, count, chid_, caValue ) );
-    delete [] caValue;
     return getStat();
 }
 
@@ -301,7 +315,7 @@ epicsShareFunc pvStat caVariable::putNoBlock( pvType type, int count, pvValue *v
  *
  * Description:
  */
-epicsShareFunc pvStat caVariable::putCallback( pvType type, int count, pvValue *value,
+epicsShareFunc pvStat caVariable::putCallback( pvType type, unsigned count, pvValue *value,
 			        pvEventFunc func, void *arg )
 {
     if ( getDebug() > 0 )
@@ -323,7 +337,7 @@ epicsShareFunc pvStat caVariable::putCallback( pvType type, int count, pvValue *
  *
  * Description:
  */
-epicsShareFunc pvStat caVariable::monitorOn( pvType type, int count, pvEventFunc func,
+epicsShareFunc pvStat caVariable::monitorOn( pvType type, unsigned count, pvEventFunc func,
 			      void *arg, pvCallback **pCallback )
 {
     if ( getDebug() > 0 )
@@ -403,7 +417,7 @@ epicsShareFunc pvType caVariable::getType() const
  *
  * Description:
  */
-epicsShareFunc int caVariable::getCount() const
+epicsShareFunc unsigned caVariable::getCount() const
 {
     if ( getDebug() > 1 )
         printf( "%8p: caVariable::getCount()\n", this );
@@ -455,7 +469,7 @@ void pvCaMonitorHandler( struct event_handler_args args )
     pvEventFunc func = callback->getFunc();
     pvVariable *variable = callback->getVariable();
     pvType type = callback->getType();
-    int count = callback->getCount();
+    unsigned count = callback->getCount();
     void *arg = callback->getArg();
 
     // put completion messages pass a NULL value
@@ -463,13 +477,16 @@ void pvCaMonitorHandler( struct event_handler_args args )
 	( *func ) ( ( void * ) variable, type, count, NULL, arg,
 		    statFromCA( args.status ) );
     } else {
-	pvValue *value = new pvValue[count]; // ### larger than needed
+#if (__STDC_VERSION__ >= 199901L) || defined(__GNUC__)
+        char value[pv_size_n(typeFromCA(args.type), count)];
+#else
+        char *value = (char*)alloca( pv_size_n(typeFromCA(args.type), count) );
+#endif
 	copyFromCA( args.type, args.count, ( union db_access_val * ) args.dbr,
-		    value );
+		    (pvValue *) value );
 	// ### should assert args.type is equiv to type and args.count is count
-	( *func ) ( ( void * ) variable, type, count, value, arg,
+	( *func ) ( ( void * ) variable, type, count, (pvValue *) value, arg,
 		    statFromCA( args.status ) );
-	delete [] value;
     }
 }
 
@@ -622,7 +639,7 @@ static int typeToCA( pvType type )
  *
  * Description:
  */
-static void copyToCA( pvType type, int count,
+static void copyToCA( pvType type, unsigned count,
 		      const pvValue *value, union db_access_val *caValue )
 {
     // ### inefficient to do all this here
@@ -634,7 +651,7 @@ static void copyToCA( pvType type, int count,
     dbr_string_t*strval   = (dbr_string_t *) dbr_value_ptr(caValue, DBR_STRING);
 
     int s = sizeof( dbr_string_t );
-    int i;
+    unsigned i;
 
     switch ( type ) {
       case pvTypeCHAR:
@@ -677,7 +694,7 @@ static void copyToCA( pvType type, int count,
  *
  * Description:
  */
-static void copyFromCA( int type, int count,
+static void copyFromCA( int type, unsigned count,
 			const union db_access_val *caValue, pvValue *value )
 {
     // ### inefficient to do all this here
@@ -696,7 +713,7 @@ static void copyFromCA( int type, int count,
     dbr_string_t*tstrval  = (dbr_string_t *) dbr_value_ptr(caValue, DBR_TIME_STRING);
 
     int s = sizeof( pvString );
-    int i;
+    unsigned i;
 
     switch ( type ) {
       case DBR_CHAR:
