@@ -1,0 +1,77 @@
+#==============================================================
+#
+#  Name: RELEASE_NOTES
+#
+#  Rem: This files describes release notes for
+#       the sequencer.
+#
+#  Side: Software maintained at psi
+#
+#  Auth: yy-mmm-2007, Author's Name      (USERNAME)
+#  Rev:  dd-mmm-yyyy, Reviewer's Name    (USERNAME)
+#--------------------------------------------------------------
+#  Mod:
+#        19-Mar-2010, S. Hoobler 	 (SONYA):
+#          release seq-R2-0-11-lcls3
+#        22-Feb-2010, K. Luchini/D.Rogind (LUCHINI/DROGIND):
+#          release seq-R2-0-11-lcls2
+#        27-Apr-2009, K. Luchini         (LUCHINI):
+#          release seq-R2-0-11-lcls1
+#        21-Feb-2008, Z. Szalata         (ZMS):
+#          release seq-R2-0-11
+#          release seq-R2-0-2
+#        08-Oct-2007, K. Luchini         (LUCHINI):
+#          release seq-R2-0-1
+#          release seq-R2-0-0
+#          release seq-R1-0-2
+#          release seq-R1-0-1
+#        30-Aug-2007, K. Luchini         (LUCHINI):
+#          release seq-R1-0-0
+#
+#==============================================================
+#
+seq-R2-1-3:          Bring in new version from BESSY: 2.1.3
+                     This addressed a serious bug for the LINAC Upgrade team:
+                     "fixed wait for initial connect and monitor"
+                     Read the RELEASE Notes for 2.1.3:
+                     http://www-csr.bessy.de/control/SoftDist/sequencer/Notes.html#release-notes-2-1-3
+
+seq-R2-0-11-lcls5:   Modified RELEASE_SITE to use epics-R3-14-8-2-lcls6_p1
+                     
+seq-R2-0-11-lcls4:   This release was modified to build against EPICS
+                     BASE epics-R3-14-8-2-lcls6 and epics-R3-14-12
+                     
+seq-R2-0-11-lcls3:   Build with epics-R3-14-8-2-lcls6
+                     Build with rtems-4.9.4
+
+seq-R2-0-1-11-lcls2: Build with epics-R3-14-8-2-lcls5
+                     Build with rtems-4.9.3
+
+seq-R2-0-1-11-lcls1: Build with epics-R3-14-8-2-lcls3
+                     Build with retms-4.9.1
+                     Software now maintained at psc and not SLAC
+                     and therefore used specific tagging convention that
+                     applies to dowloads maintained off-site.
+
+seq-R2-0-11: Change tag only to conform to standard
+
+seq-R2-0-2:  Change tag only to conform to standard
+
+seq-R2-0-1-1: modifications needed to bring the module 
+              to EPICS R3-14-9 standard
+
+seq-R2-0-1: Build agains base-R3-14-9-lcls1 (RTEMS 4.7.1)
+
+seq-R2-0-0: Retag with proper version number
+
+seq-R1-0-1: Retag using LCLS standard.
+            add header to this file.
+            Built against base-R3-14-8-2-lcls2 (RTEMS 4.7.1)
+
+
+seq-R1-0-0: Retag using LCLS standard. 
+            add header to this file.
+            Built against base-R3-14-8-2-lcls1 (RTEMS 4.7)
+
+R1-0-0:     Initial release of EPICS sequencer code; maintained
+            by Lazmo at SLAC.

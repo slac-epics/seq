@@ -1,5 +1,0 @@
-FILE QUARANTINED
-----------------
-
-Antigen for Exchange (EXCH-ANON) removed seq-2.0.10.tar.gz->seq-2.0.10.tar->seq-2-0-10/test/demo/st.cmd 
-since it was found to match the FILE FILTER= *.cmd file filter.
