@@ -1,0 +1,18 @@
+Users' Guide
+============
+
+.. toctree::
+   :maxdepth: 2
+
+   Introduction
+   Notes
+   Installation
+   Tutorial
+   Compiling
+   Using
+   Reference
+   PV-API
+   Examples
+   Plans
+
+* :ref:`Index <genindex>`

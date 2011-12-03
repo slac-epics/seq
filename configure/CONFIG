@@ -1,6 +1,7 @@
 # CONFIG
 
 include $(TOP)/configure/RELEASE
+-include $(TOP)/configure/RELEASE.$(EPICS_HOST_ARCH)
 -include $(TOP)/configure/RELEASE.$(EPICS_HOST_ARCH).Common
 
 ifdef T_A
@@ -15,6 +16,7 @@ include $(CONFIG)/CONFIG
 INSTALL_LOCATION = $(TOP)
 
 include $(TOP)/configure/CONFIG_SITE
+-include $(TOP)/configure/CONFIG_SITE.$(EPICS_HOST_ARCH)
 -include $(TOP)/configure/CONFIG_SITE.$(EPICS_HOST_ARCH).Common
 
 ifdef T_A
@@ -23,4 +25,8 @@ ifdef T_A
   -include $(TOP)/configure/O.$(T_A)/CONFIG_APP_INCLUDE
 endif
 
-SEQ_VERSION = 2.0.11
+EPICS_HAS_UNIT_TEST := $(shell $(PERL) -e 'print($(EPICS_MODIFICATION) >= 10)')
+
+ECHO := $(if $(findstring s,$(MAKEFLAGS)),$(NOP),@echo)
+
+SEQ_VERSION = 2.1.3

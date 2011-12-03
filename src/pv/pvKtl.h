@@ -1,6 +1,8 @@
-/* pvKtl.h,v 1.2 2000/04/14 21:53:29 jba Exp
- *
- * Definitions for EPICS sequencer KTL library (pvKtl)
+/*************************************************************************\
+This file is distributed subject to a Software License Agreement found
+in the file LICENSE that is included with this distribution.
+\*************************************************************************/
+/* Definitions for EPICS sequencer KTL library (pvKtl)
  *
  * William Lupton, W. M. Keck Observatory
  */
