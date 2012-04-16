@@ -26,13 +26,13 @@ monitor anonymous;
 sync anonymous to ef_anonymous;
 
 entry {
-    testPlan(0);
+    seq_test_init(0);
     efClear(ef_named);
 }
 
 ss read {
     double named;
-    assign named to "test";
+    assign named to "evflag";
     monitor named;
     sync named to ef_named;
     state wait {
@@ -49,7 +49,7 @@ ss read {
 
 ss write {
     double named = 1.0;
-    assign named to "test";
+    assign named to "evflag";
     int n=0;
     state send {
         when (n > 10) {
@@ -74,6 +74,5 @@ ss write {
 }
 
 exit {
-    testDone();
     seq_test_done();
 }

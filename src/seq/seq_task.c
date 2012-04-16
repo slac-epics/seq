@@ -65,6 +65,15 @@ void sequencer (void *arg)	/* ptr to original (global) state program table */
 	if (seq_connect(sp, ((sp->options & OPT_CONN) != 0)) != pvStatOK)
 		goto exit;
 
+	/* Emulate the 'first monitor event' for anonymous PVs */
+	if ((sp->options & OPT_SAFE) != 0)
+	{
+		unsigned nch;
+		for (nch=0; nch<sp->numChans; nch++)
+			if (sp->chan[nch].syncedTo && !sp->chan[nch].dbch)
+				seq_efSet(sp->ss, sp->chan[nch].syncedTo);
+	}
+
 	/* Call program entry function if defined.
 	   Treat as if called from 1st state set. */
 	if (sp->entryFunc) sp->entryFunc(sp->ss, sp->ss->var);
@@ -179,6 +188,23 @@ static void ss_read_all_buffer(SPROG *sp, SSCB *ss)
 		CHAN *ch = sp->chan + nch;
 		/* Call static version so it gets inlined */
 		ss_read_buffer_static(ss, ch, TRUE);
+	}
+}
+
+/*
+ * ss_read_all_buffer_selective() - Call ss_read_buffer_static
+ * for all channels that are sync'ed to the given event flag.
+ * NOTE: calling code must take sp->programLock, as we traverse
+ * the list of channels synced to this event flag.
+ */
+void ss_read_buffer_selective(SPROG *sp, SSCB *ss, EV_ID ev_flag)
+{
+	CHAN *ch = sp->syncedChans[ev_flag];
+	while (ch)
+	{
+		/* Call static version so it gets inlined */
+		ss_read_buffer_static(ss, ch, TRUE);
+		ch = ch->nextSynced;
 	}
 }
 

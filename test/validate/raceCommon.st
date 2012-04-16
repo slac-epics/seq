@@ -18,10 +18,10 @@ sync x to efx;
 
 foreign MAX_STRING_SIZE;
 
-#define MAX_TESTS 30
+#define MAX_TESTS 10
 
 entry {
-    testPlan(MAX_TESTS);
+    seq_test_init(MAX_TESTS);
     testDiag("This test will run for %d seconds...", MAX_TESTS);
 }
 
@@ -148,6 +148,5 @@ ss stop {
 }
 
 exit {
-    testDone();
     seq_test_done();
 }

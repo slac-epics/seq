@@ -6,11 +6,11 @@ and for the built-in functions.
 
 Formal syntax is given in `BNF`_. Multiple rules for the same
 `nonterminal symbol`_ mean that any of the given rules may apply. `Terminal
-symbol`_\s are enclosed in double quotes.
+symbols`_ are enclosed in double quotes.
 
 .. _BNF: http://en.wikipedia.org/wiki/Backus-Naur_Form
 .. _nonterminal symbol: http://en.wikipedia.org/wiki/Terminal_and_nonterminal_symbols#Nonterminal_symbols
-.. _terminal symbol: http://en.wikipedia.org/wiki/Terminal_and_nonterminal_symbols#Terminal_symbols
+.. _terminal symbols: http://en.wikipedia.org/wiki/Terminal_and_nonterminal_symbols#Terminal_symbols
 
 Lexical Syntax
 --------------
@@ -82,7 +82,9 @@ Line markers are interpreted by *snc* exactly as in C, i.e. they indicate
 that the following symbols are really located in the given source file (if
 any) at the given line.
 
-.. note:: :token:`line_number` may only contain decimal numbers, and
+.. note::
+
+   :token:`line_number` may only contain decimal numbers, and
    :token:`file_name` must be a single string (no automatic string
    concatenation).
 
@@ -154,7 +156,7 @@ run in the context of the first state set thread.
 :ref:`state entry and exit blocks`, which have the same syntax but are
 executed at each transition from/to a new state.)
 
-The entry or exit code is a regular SNL code block an thus can contain local
+The entry or exit code is a regular SNL code block and thus can contain local
 variable declarations. Global entry code is always executed after initiating
 connections to (named) PVs, and exit code is executed before connections are
 shut down. Furthermore, if the global :option:`+c` option is in effect, the
@@ -305,7 +307,8 @@ and :c:func:`efTestAndClear`.
 An event flag ``e`` can act as a binary semaphore, allowing exactly one
 state set to continue, if ``when(efTestAndClear(e))`` is used to wait
 and ``efSet(e)`` to signal. Event flags can be coupled to changes of a
-PV using the :token:`sync` clause.
+PV using the :token:`sync` clause, so that the flag gets set whenever
+an event happens.
 
 You cannot declare arrays of or pointers to event flags, since
 event flags are not translated to C variables in your program.
@@ -404,7 +407,7 @@ The second one assigns a single element of an array variable to a
 single process variable. The third one assigns elements of an array
 variable to separate process variables.
 
-..versionadded:: 2.1
+.. versionadded:: 2.1
 
 The fourth variant serves as an abbreviation for
 the first variant, in the special case where the PV name is empty (``""``).
@@ -428,9 +431,10 @@ Parameter`_). If the process variable name is an empty string, then no
 actual assignment to any process variable is performed, but the variable
 is marked for potential (dynamic) assignment with :c:func:`pvAssign`.
 
-.. note:: An :token:`assign` clause using an empty string for the PV name
-   is interpreted differently in :ref:`safe mode`, see
-   :ref:`anonymous pvs`.
+.. note::
+
+   An :token:`assign` clause using an empty string for the PV name is
+   interpreted differently in :ref:`safe mode`, see :ref:`anonymous pvs`.
 
 .. todo:: In safe mode it might make sense to implicitly declare every
    global variable as assigned (wholesale, if it is an array) by default.
@@ -495,8 +499,8 @@ This declares a variable to be synchronized with an event flag.
 
 When a monitor is posted on any of the process variables associated
 with the event flag (and these are :token:`monitor`\ed), or when an
-asynchronous get operation completes, the corresponding event flag is
-set.
+asynchronous get or put operation completes, the corresponding event
+flag is set.
 
 The variable must be :token:`assign`\ed and :token:`monitor`\ed.
 A variable can be mentioned in at most one sync clause, but an event
@@ -853,8 +857,10 @@ Primary Expression Operators
 These are: function call, array subscript, record selection, pointer to
 record selection, and postfix operators (increment and decrement).
 
-.. note:: :token:`exit` is listed explicitly because it is a keyword, not
-   an identifier, but can also be used as a function.
+.. note::
+
+   :token:`exit` is listed explicitly because it is a keyword, not an
+   identifier, but can also be used as a function.
 
 .. note:: SNL makes no use of the semantics of structure member access and
    struct tags are treated as if they were expressions (variables, in
@@ -950,6 +956,112 @@ comma operator, which is why application of the comma operator in an
 argument list must be grouped by parentheses.
 
 
+Built-in Constants
+------------------
+
+Some of the built-in functions use (i.e. accept or return) values of
+certain enumeration types and constants. These are also available to C
+code and defined in the header files pvAlarm.h and seqCom.h.
+
+.. versionadded:: 2.1.6
+
+The pvStat and pvSevr constants are now known to the compiler, so you
+no longer have to declare them as ``foreign`` in the SNL code.
+
+
+pvStat
+^^^^^^
+
+::
+
+   typedef enum {
+       /* generic OK and error statuses */
+       pvStatOK           = 0,
+       pvStatERROR        = -1,
+       pvStatDISCONN      = -2,
+
+       /* correspond to EPICS statuses */
+       pvStatREAD         = 1,
+       pvStatWRITE        = 2,
+       pvStatHIHI         = 3,
+       pvStatHIGH         = 4,
+       pvStatLOLO         = 5,
+       pvStatLOW          = 6,
+       pvStatSTATE        = 7,
+       pvStatCOS          = 8,
+       pvStatCOMM         = 9,
+       pvStatTIMEOUT      = 10,
+       pvStatHW_LIMIT     = 11,
+       pvStatCALC         = 12,
+       pvStatSCAN         = 13,
+       pvStatLINK         = 14,
+       pvStatSOFT         = 15,
+       pvStatBAD_SUB      = 16,
+       pvStatUDF          = 17,
+       pvStatDISABLE      = 18,
+       pvStatSIMM         = 19,
+       pvStatREAD_ACCESS  = 20,
+       pvStatWRITE_ACCESS = 21
+   } pvStat;
+
+
+pvSevr
+^^^^^^
+
+::
+
+   typedef enum {
+       /* generic OK and error severities */
+       pvSevrOK      = 0,
+       pvSevrERROR   = -1,
+
+       /* correspond to EPICS severities */
+       pvSevrNONE    = 0,
+       pvSevrMINOR   = 1,
+       pvSevrMAJOR   = 2,
+       pvSevrINVALID = 3
+   } pvSevr;
+
+
+compType
+^^^^^^^^
+
+::
+
+   enum compType {
+       DEFAULT,
+       ASYNC,
+       SYNC
+   };
+
+.. note::
+   Only ``SYNC`` and ``ASYNC`` are SNL built-in constants (i.e.
+   known to *snc*). The constant ``DEFAULT`` is for use in C code
+   (to represent a missing optional argument).
+
+
+seqBool
+^^^^^^^
+
+::
+
+   typedef int seqBool;
+
+   #define TRUE   1
+   #define FALSE  0
+
+
+NOEVFLAG
+^^^^^^^^
+
+::
+
+   #define NOEVFLAG 0
+
+This can be given as second argument to :c:func:`pvSync` (instead of
+an event flag) to cancel the sync.
+
+
 .. _BuiltinFunctions:
 
 Built-in Functions
@@ -975,6 +1087,7 @@ calling :c:func:`delay` in action code does *not* introduce a delay at this
 point. Later versions of *snc* may output a warning or even stop with an
 error.
 
+
 delay expired
 ^^^^^^^^^^^^^
 
@@ -988,6 +1101,7 @@ The :option:`-t` state option (see `State Option`_) controls whether the
 delay is measured from when the current state was entered from a different
 state (:option:`-t`) or from any state, including itself (:option:`+t`,
 the default).
+
 
 pvPut
 ^^^^^
@@ -1049,6 +1163,7 @@ clause.
 Note that for anonymous PVs completion is always immediate, so the ``ASYNC`` option
 is not very useful.
 
+
 pvPutComplete
 ^^^^^^^^^^^^^
 
@@ -1070,6 +1185,7 @@ the function returns whether *any* put has completed since the last
 call. If ``pComplete`` is non-NULL, it should be an array of
 at least the array length of the SNL variable and its elements indicate
 whether the corresponding :c:func:`pvPut` has completed.
+
 
 pvGet
 ^^^^^
@@ -1105,6 +1221,7 @@ until a call to pvGetComplete is made and returns ``TRUE`` or, if the
 variable is monitored, until the state set waits for events in a :token:`when`
 clause. Note that anonymous PVs behave exactly in the same way.
 
+
 pvGetComplete
 ^^^^^^^^^^^^^
 
@@ -1119,6 +1236,7 @@ the asynchronous (:option:`+a`) compile option is specified or
 In :ref:`safe mode`, the the state set local copy of the variable will be
 updated with the value from the PV layer as a side effect of this call
 (if TRUE is returned).
+
 
 pvGetQ
 ^^^^^^
@@ -1145,8 +1263,8 @@ careful when combining a call to pvGetQ with other conditions in the same
         } state ...
 
 would remove the head from the queue every time the when clause gets
-evaluated, regardless of whether the ``other_condition`` is met. This is most
-probably is not the desired effect, as you would loose an
+evaluated, regardless of whether ``other_condition`` is ``TRUE``. This is most
+probably not the desired effect, as you would lose an
 unknown number of messages. (Of course it *could* be exactly what you want,
 especially if ``other_condition`` were in fact ``!suppress_output``.)
 Whereas ::
@@ -1177,6 +1295,7 @@ clears the associated event flag.
 Queue elements are no longer dynamically allocated, so this
 is now an alias for pvFlushQ.
 
+
 pvFlushQ
 ^^^^^^^^
 
@@ -1186,6 +1305,7 @@ pvFlushQ
 .. versionadded:: 2.1
 
 Flush the queue associated with this variable, so it is empty afterwards.
+
 
 pvAssign
 ^^^^^^^^
@@ -1200,9 +1320,15 @@ variable). In :ref:`safe mode`, it causes assignment to an anonymous PV.
 
 As usual, ``assigned_var`` can also be an array element.
 
-.. note:: :c:func:`pvAssign` can only be called on variables (or array
-   elements) that have been statically marked as process variables using
-   the :token:`assign` syntax. An empty string may be used for the initial
+See also :token:`assign` clause.
+
+A better name for this function would be ``pvReassign``.
+
+.. note::
+
+   :c:func:`pvAssign` can only be called on variables (or array elements)
+   that have been statically marked as process variables using the
+   :token:`assign` syntax. An empty string may be used for the initial
    assignment, or (from version 2.1. onward) the simplified form
    ``assign var``.
 
@@ -1213,7 +1339,14 @@ As usual, ``assigned_var`` can also be an array element.
    care should be taken that assignment and de-assignment do not
    alternate too often.
 
-A better name for this function would be ``pvReassign``.
+..note:: If you want to assign array elements to separate PVs, you cannot
+   currently do this with a single call (in contrast to doing it in an
+   :token:`assign` clause. Instead, you must call :c:func:`pvAssign`
+   for each array element individually.
+   This might change in a future release.
+
+..todo:: Implement multiple assign for arrays.
+
 
 pvMonitor
 ^^^^^^^^^
@@ -1225,13 +1358,31 @@ Initiates a monitor on the underlying process variable.
 
 See :token:`monitor` clause.
 
+..note:: If you want to monitor all elements of an array that have been
+   assigned to separate PVs, you cannot currently do this with a single
+   call (in contrast to doing it in a :token:`monitor` clause). Instead,
+   you must call :c:func:`pvMonitor` for each array element individually.
+   This might change in a future release.
+
+..todo:: Implement multiple monitor for arrays.
+
+
 pvStopMonitor
 ^^^^^^^^^^^^^
 
 .. c:function::
    pvStat pvStopMonitor(assigned_var)
 
+..note:: If you want to stop monitoring all elements of an array that have been
+   assigned to separate PVs, you cannot currently do this with a single
+   call. Instead,
+   you must call :c:func:`pvStopMonitor` for each array element individually.
+   This might change in a future release.
+
+..todo:: Implement multiple stop monitor for arrays.
+
 Terminates a monitor on the underlying process variable.
+
 
 pvSync
 ^^^^^^
@@ -1240,9 +1391,18 @@ pvSync
    void pvSync(assigned_var, event_flag)
 
 Synchronizes a variable with an event flag, or removes such a
-synchronization if ``event_flag`` is zero.
+synchronization if ``event_flag`` is `NOEVFLAG`_.
+
+..note:: If you want to sync all elements of an array that have been
+   assigned to separate PVs, you cannot currently do this with a single
+   call. Instead,
+   you must call :c:func:`pvSync` for each array element individually.
+   This might change in a future release.
+
+..todo:: Implement multiple sync for arrays.
 
 See :token:`sync` clause.
+
 
 pvCount
 ^^^^^^^
@@ -1253,6 +1413,7 @@ pvCount
 Returns the element count associated with the process variable. This value
 is independent of the array size (if the variable is an array), it can be
 smaller or larger.
+
 
 pvStatus
 ^^^^^^^^
@@ -1269,6 +1430,7 @@ The status, severity, and message returned by :c:func:`pvStatus`,
 PV's properties (if a pvPut or pvGet operation completed, or the variable is
 monitored), or else indicate a failure to initiate one of these operations.
 
+
 pvSeverity
 ^^^^^^^^^^
 
@@ -1277,6 +1439,7 @@ pvSeverity
 
 Returns the current alarm severity (e.g. pvSevrMAJOR) of the underlying PV
 or indicates failure of a previous PV operation.
+
 
 pvMessage
 ^^^^^^^^^
@@ -1287,13 +1450,14 @@ pvMessage
 Returns the current error message of the variable, or "" (the empty string)
 if none is available.
 
+
 pvTimeStamp
 ^^^^^^^^^^^
 
 .. c:function::
    epicsTimeStamp pvTimeStamp(assigned_var)
 
-Returns the time stamp for the last :c:func`pvGet` completion or monitor
+Returns the time stamp for the last :c:func:`pvGet` completion or monitor
 event for this variable. The SNL compiler does not recognize type epicsTimeStamp.
 Therefore, variable declarations for this type should be in escaped
 C code. This will generate a compiler warning, which can be
@@ -1325,6 +1489,7 @@ pvAssigned
 Returns whether the SNL variable is currently assigned to a process variable.
 Note that this function returns ``FALSE`` for anonymous PVs.
 
+
 pvConnected
 ^^^^^^^^^^^
 
@@ -1332,6 +1497,7 @@ pvConnected
    boolean pvConnected(assigned_var)
 
 Returns whether the underlying process variable is currently connected.
+
 
 pvIndex
 ^^^^^^^
@@ -1341,6 +1507,7 @@ pvIndex
 
 Returns the index associated with a variable. See
 `User Functions within the State Program`_ for how to use this function.
+
 
 pvFlush
 ^^^^^^^
@@ -1358,6 +1525,7 @@ The buffer is also flushed after initiating a synchronous
 operation that waits for a callback (i.e. ``pvPut(var,SYNC)``
 and ``pvGet(var,SYNC)``).
 
+
 pvChannelCount
 ^^^^^^^^^^^^^^
 
@@ -1366,6 +1534,7 @@ pvChannelCount
 
 Returns the total number of process variables
 associated with the program.
+
 
 pvAssignCount
 ^^^^^^^^^^^^^
@@ -1384,6 +1553,7 @@ expression is ``TRUE``::
 Each element of an SNL array counts as variable for the purposes of
 :c:func:`pvAssignCount`.
 
+
 pvConnectCount
 ^^^^^^^^^^^^^^
 
@@ -1398,6 +1568,7 @@ expression is ``TRUE``::
 
    pvConnectCount() == pvAssignCount()
 
+
 efSet
 ^^^^^
 
@@ -1407,6 +1578,17 @@ efSet
 Sets the event flag and causes evaluation of the :token:`when`
 clauses for all state sets that are pending on this event flag.
 
+
+efClear
+^^^^^^^
+
+.. c:function::
+   boolean efClear(event_flag)
+
+Clears the event flag and causes evaluation of the :token:`when`
+clauses for all state sets that are pending on this event flag.
+
+
 efTest
 ^^^^^^
 
@@ -1415,15 +1597,12 @@ efTest
 
 Returns whether the event flag was set.
 
-efClear
-^^^^^^^
+.. note::
 
-.. c:function::
-   boolean efClear(event_flag)
-
-Clears the event flag and returns whether the event flag was set.
-Also and causes evaluation of the :token:`when` clauses for all
-state sets that are pending on this event flag.
+   In safe mode, this function is a synchronization point for all
+   variables (channels) that are :token:`sync`\ed with it, i.e. the
+   state set local copy of these variables will be updated from their
+   current globally visible value.
 
 
 efTestAndClear
@@ -1434,6 +1613,14 @@ efTestAndClear
 
 Clears the event flag and returns whether the event
 flag was set. It is intended for use within a :token:`when` clause.
+
+.. note::
+
+   In safe mode, this function is a synchronization point for all
+   variables (channels) that are :token:`sync`\ed with it, i.e. the
+   state set local copy of these variables will be updated from their
+   current globally visible value.
+
 
 macValueGet
 ^^^^^^^^^^^
@@ -1463,7 +1650,7 @@ traditional unsafe mode.
 In the traditional (unsafe) mode, variables are *not* protected against
 access from concurrently running threads. Concurrent access to SNL
 variables was introduced in version 2.0, when implementation of the PV
-layer switched from the traditional single threaded CA mode ("preemptive
+layer switched from the old single threaded CA mode ("preemptive
 callbacks disabled") to the multi-threaded mode ("preemptive callbacks
 enabled") in order to support more than one state set per program. This
 could result in data corruption for variables that are not read and written
@@ -1485,6 +1672,19 @@ While it is possible to avoid the first case by careful coding (using e.g.
 event flags for synchronization) it is not possible to guard against the
 second case as these events can interrupt action statements at any time.
 
+One of the reasons SNL programs have mostly worked in spite of this is
+that due to the standard CA thread priorities the callback thread does not
+interrupt the state set threads. Furthermore (and contrary to what many
+people believe) the VxWorks scheduler does not normally serve threads with
+equal priority in a round-robin (time-sliced) fashion; instead each thread
+keeps running until it gets interrupted by a higher priority thread or
+until it blocks on a semaphore.
+
+However, thread priorities are not honored if programs are run under
+Linux or Windows in user mode; and anyway, priorities should only be used
+to improve latency for certain operations (at the cost of others) and
+*never* should they be relied upon for program correctness.
+
 Safe mode solves all these problems by changing the way variables,
 particularly global variables, are interpreted. In safe mode, all variables
 --except event flags-- are interpreted as if they were *local to the state
@@ -1497,7 +1697,8 @@ don't do anything i.e. when they wait for events in a :token:`when` clause.
 In safe mode, variable values get updated right before the conditions are
 evaluated, or when explicitly calling synchronization functions like
 :c:func:`pvGetComplete` or :c:func:`pvGet` (the latter only if called in
-synchronous mode); see below for details.
+synchronous mode), as well as :c:func:`efTest` and :c:func:`efTestAndClear`.
+The documentation for the built-in functions explains the details.
 
 Safe mode implies reentrant mode, see :ref:`reentrant option`.
 
@@ -1559,16 +1760,13 @@ as with external PVs.
 Event Flags in Safe Mode
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-Apart from the :token:`sync` and :token:`syncq` features, an event flag
-behaves like an anonymous PV of boolean type with a monitor. We could
-have defined (pseudo code)::
-
-   efSet(e)          { e = TRUE; pvPut(e); }
-   efClear(e)        { e = FALSE; pvPut(e); }
-   efTest(e)         { pvGet(e,SYNC); return e; }
-   efTestAndClear(e) { pvGet(e,SYNC);
-                       if(e) { efClear(e); return TRUE}
-                       else return FALSE; }
+Apart from the :token:`sync` and :token:`syncq` features, and apart
+from the atomicity of :c:func:`efTestAndClear`, an event flag behaves
+similar to an anonymous PV of boolean type with a monitor. In safe
+mode, :c:func:`efTest` and :c:func:`efTestAndClear` have the additional
+side-effect of acting as a synchronization point for all variables that
+are :token:`sync`\ed with the event flag: the state set local copies of
+these variable are updated from their globally visible copies.
 
 
 C Compatibility Features
@@ -1681,7 +1879,9 @@ Reference to variable ``sw1`` is made as ::
 This conversion is automatically performed by the SNC for all SNL
 statements, but you will have to handle escaped C code yourself.
 
-.. note:: :ref:`safe mode` (enabled with the :option:`+s` option) implies
+.. note::
+
+   :ref:`safe mode` (enabled with the :option:`+s` option) implies
    reentrant mode. In safe mode, each state set has its own copy of the
    ``UserVar`` struct. You can operate on its members in any way you like,
    including taking the address of variables and passing them to C
@@ -1706,7 +1906,7 @@ variable, and then does a pvPut::
    int i;
    assign i to "counter";
 
-   foreign pVar, ssId;
+   foreign ssId;
 
    ss myss {
        state doit {

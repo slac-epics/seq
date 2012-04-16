@@ -1,0 +1,69 @@
+Known Problems
+==============
+
+.. _Known_Problems_2.1.5:
+
+Known Problems in Release 2.1.5
+-------------------------------
+
+These are all fixed in the latest snapshot.
+
+* Using pvPutComplete or pvGetComplete inside a when-clause may
+  result in a deadlock: the state set forever waits for the
+  completion even though the callback arrived.
+
+  Note: this Problem is present at least since 2.0.12.
+
+  Note also: standard CA thread priorities hide this problem, so the
+  symptoms do not appear on VxWorks and RTEMS; they appear only if
+  epics thread priorities are reversed (or ignored, as is typically
+  the case for soft IOCs running in user mode on Linux or Windows).
+
+* In safe mode, if a variable is monitored and sync'ed, it can
+  happen that an event is detected with efTestAndClear
+  but the underlying variable still has the old value.
+
+  You should avoid using efTestAndClear together with conditions
+  that test the value of the underlying variable; this may lead
+  to an apparently "lost event", i.e. the event flag gets cleared
+  but no state transition happens. Instead use efTest, and
+  clear the flag in the action block only after you have actually
+  got the new value.
+
+* The asynchronous versions of pvPut and pvGet built-in functions
+  do not behave correctly in case of connection loss. Particularly,
+  if connection is lost when waiting for completion, the state set
+  that issued the command will not be woken, so that it will wait
+  for the full timeout (the hard-coded 10 seconds).
+
+  Thanks to Daniel Keating for finding
+  this bug and pointing me in the right direction how to fix it.
+
+* The compiler crashes when an assign clause lists more PVs than
+  the array contains elements.
+
+* The compiler reports wrong line numbers (and could potentially
+  crash, though I did not experience this) when SNL or C code is
+  included with an un-escaped preprocessor #include command.
+
+* In safe mode, anonymous PVs deviate from named PVs in the behaviour
+  of event flags: Normally, event flags for monitored PVs will be
+  set when entering the first state because of the first monitor event
+  we get from CA after connecting. This should be emulated for
+  anonymous PVs in order to restore the symmetry and so that named
+  and anonymous PVs can be interchanged at will (as claimed in the docs).
+
+.. _Known_Problems_2.1.4:
+
+Known Problems in Release 2.1.4
+-------------------------------
+
+The builtin procedure pvAssign has several bugs:
+
+* In safe mode, if an initially unassigned variable gets assigned
+  at runtime using pvAssign, a subsequent pvGet crashes the program.
+
+* When re-assigning a variable that is already connected to a PV, then
+  you get warning messages like
+  "sevr=minor XYZ connect event but already connected". It also looks as
+  if not all resources associated with teh channel are correctly freed.

@@ -33,7 +33,7 @@ in the file LICENSE that is included with this distribution.
 #include "epicsThread.h"
 #include "epicsTime.h"
 
-#include "seqVersion.h"
+#include "seq_release.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -62,7 +62,7 @@ extern "C" {
 #define bitClear(words, bitnum)	( words[(bitnum)/NBITS] &= ~(1u<<((bitnum)%NBITS)))
 #define bitTest(words, bitnum)	((words[(bitnum)/NBITS] &  (1u<<((bitnum)%NBITS))) != 0)
 
-#define NO_EVENT_FLAG		0	/* argument to pvSync to remove sync */
+#define NOEVFLAG		0	/* argument to pvSync to remove sync */
 
 #define DEFAULT_QUEUE_SIZE	100	/* default queue size (elements) */
 

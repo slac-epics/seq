@@ -1,10 +1,169 @@
 Release Notes
 =============
 
+.. _Release_Notes_2.1.6:
+
+Release 2.1.6
+-------------
+
+Bug fixes:
+
+* fixed order of state set wakeup and signalling of completions
+
+  This was a subtle concurrency bug discovered and analyzed by Lewis Muir:
+  if pvPutComplete or pvGetComplete are used inside a when-clause, waking
+  up the state set before signalling completion could result in a deadlock.
+  See :ref:`Known_Problems_2.1.5` for details.
+
+* fixed 'lost events' bug (safe mode only), an even subtler bug which
+  happened only in safe mode. See :ref:`Known_Problems_2.1.5` for details.
+  Thanks to Lewis Muir for providing a test case that makes this bug
+  reproducable.
+
+  The fix is to make efTest and efTestAndClear synchronization points
+  for all variables sync'ed to the event flag. See the updated sections
+  in the reference (under :c:func:`efTest` and :c:func:`efTestAndClear`).
+
+* fix pvPut/pvGet hanger on disconnect
+
+  The connection handler now releases all semaphores waiting for an
+  event on this PV. Furthermore, the pvGet/pvPut[Complete] built-in
+  functions check the connected status whenever they successfully waited
+  for such a semaphore.
+
+* fixed compiler crash in case of excess PVs given in an assign clause
+
+* fixed memory bug in the lexer
+
+  This bug led to wrong reported line numbers in #include'd SNL code.
+  It could also potentially result in compiler crashes.
+
+* emulate the 'first monitor event' for anonymous PVs in safe mode
+
+* work around small rounding errors in seq_delay
+
+Other changes (seq/snc):
+
+* renamed NO_EVENT_FLAG to NOEVFLAG, fix support for passing it as argument to pvSync
+
+* add pvStatXXX and pvSevrXXX to known constants
+
+  This fixes the long-standing problem that pvStatOK are not known
+  to snc and thus must be declared as foreign (or you get a warning).
+
+* revert back to generating names, not values, for known constants
+
+* avoid warning on 64 bit systems when debug messages are switched on
+
+Tests:
+
+* added regression tests for some of the new bugs
+
+* no longer runs all tests under valgrind by default
+
+  This is now configurable in test/validate/Makefile.
+
+* add pvGetAsync test but dont run it on vxWorks
+
+* run tests on vxWorks with standard, lowered, and increased priority
+
+* added instructions for running a single test
+
+Docs:
+
+* improved documentation of event flags in safe mode
+
+* extended safe mode explanation with a remark on priorities
+
+* documented some deficiencies of pvAssign, pvMonitor, etc w.r.t. the syntax versions
+
+* added NOEVFLAG constant and its use in pvSync
+
+* added built-in constants to reference
+
+* documented side effects of efTest and efTestAndClear
+
+* updated the known problems page
+
+* added instructions for running a single test
+
+* added more prominent warnings for out-dated information
+
+* fixed documentation of sync
+
+  A sync'ed event flags gets set on any kind of event:
+  monitor, as well as put and get completion.
+
+* streamlined repository branch layout on web server
+
+  See documentation/Installation.txt for details.
+
+* fixed several small errors and typos
+
+
+.. _Release_Notes_2.1.5:
+
+Release 2.1.5
+-------------
+
+:ref:`Known_Problems_2.1.5`
+
+* fixed two bugs in pvAssign:
+
+  - after an initially unassigned variable gets assigned using
+    pvAssign in safe mode, pvGet crashed the program
+
+  - when pvAssign was used to re-assign an already connected PV,
+    this was not correctly accounted for and a wrong warning
+    message was issued
+
+* extended the 'reassign' test to cover these issues
+
+* functions pvAssign and seq_connect (internal) leaked memory
+  when something fails; this has been fixed
+
+* several documentation fixes (thanks to Lewis Muir)
+
+* fixed a build problem with older base releases
+  (thanks to Bruce Hill)
+
+* internal renamings: SEQ_VERSION->SEQ_RELEASE, seqVersion->seq_release
+
+* know problems of published releases will from now on be
+  listed on an extra documentation page, with a link from the
+  release notes
+
+
+.. _Release_Notes_2.1.4:
+
+Release 2.1.4
+-------------
+
+:ref:`Known_Problems_2.1.4`
+
+* snc: fixed parser stack overflow
+
+  This appeared when compiling deeply nested statements.
+  The solution is to use a dynamically growing stack.
+
+* pv: only install public interface header files
+
+* pv: fixed a build problem on mingw32
+
+  The solution is to use epicsShareClass on class
+  declarations, instead of epicsShareFunc on methods.
+
+* test: fix Makefile to allow building if sources are read-only
+
+* docs: fixed some typos and a build problem with note:: directives
+
+* configure: made 3.14.12.2 the default base release
+
+
 .. _Release_Notes_2.1.3:
 
-Notes on Release 2.1.3
-----------------------
+Release 2.1.3
+-------------
 
 * snc: several more or less necessary changes to the lexer
 
@@ -56,8 +215,8 @@ Notes on Release 2.1.3
 
 .. _Release_Notes_2.1.2:
 
-Notes on Release 2.1.2
-----------------------
+Release 2.1.2
+-------------
 
 * re-added support for the C comma operator
 
@@ -66,8 +225,8 @@ Notes on Release 2.1.2
 
 .. _Release_Notes_2.1.1:
 
-Notes on Release 2.1.1
-----------------------
+Release 2.1.1
+-------------
 
 * sync and syncq clauses no longer require monitors
 
@@ -119,8 +278,8 @@ Notes on Release 2.1.1
 
 .. _Release_Notes_2.1.0:
 
-Notes on Release 2.1.0
-----------------------
+Release 2.1.0
+-------------
 
 Safe Mode
 ^^^^^^^^^
@@ -244,8 +403,8 @@ Separated example programs from test programs.
 
 .. _Release_Notes_2.0.99:
 
-Notes on Release 2.0.99
------------------------
+Release 2.0.99
+--------------
 
 This is a beta release for version 2.1.0.
 
@@ -432,8 +591,8 @@ Other internal changes include:
   argument is needed for the action callback
 
 
-Notes on Releases 2.0.x
------------------------
+Releases 2.0.x
+--------------
 
 .. _Release_Notes_2.0.14:
 
@@ -686,8 +845,8 @@ Comments about changes made for release 2.0.1
 
 .. _Release_Notes_2.0:
 
-Notes on Release 2.0
---------------------
+Release 2.0
+-----------
 
 Version 2.0 of the sequencer and state notation compiler is
 available for EPICS release R3.14 and later. We have added several
@@ -885,8 +1044,8 @@ Hierarchical states
 
 .. _Release_Notes_1.9:
 
-Notes on Release 1.9
---------------------
+Release 1.9
+-----------
 
 With version 1.9, we have incorporated many extensions to
 the state notation language. Some of these changes offer

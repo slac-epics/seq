@@ -198,8 +198,8 @@ epicsShareFunc void epicsShareAPI seqChanShow(epicsThreadId tid, const char *str
 		else
 			printf("  Not monitored\n");
 
-		if (ch->efId)
-			printf("  Sync'ed to event flag %u\n", ch->efId);
+		if (ch->syncedTo)
+			printf("  Sync'ed to event flag %u\n", ch->syncedTo);
 		else
 			printf("  Not sync'ed\n");
 
@@ -350,7 +350,7 @@ static void printValue(pr_fun *pr, void *val, unsigned count, int type)
 {
 	char	*c = (char *)val;
 	short	*s = (short *)val;
-	long	*l = (long *)val;
+	int	*i = (int *)val;
 	float	*f = (float *)val;
 	double	*d = (double *)val;
 	typedef char string[MAX_STRING_SIZE];
@@ -370,7 +370,7 @@ static void printValue(pr_fun *pr, void *val, unsigned count, int type)
 			pr(" %d", *s++);
 			break;
 		case pvTypeLONG:
-			pr(" %ld", *l++);
+			pr(" %d", *i++);
 			break;
 		case pvTypeFLOAT:
 			pr(" %g", *f++);

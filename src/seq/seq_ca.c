@@ -63,19 +63,6 @@ pvStat seq_connect(SPROG *sp, boolean wait)
 	int		delay = 10;
 	boolean		ready = FALSE;
 
-	for (nch = 0; nch < sp->numChans; nch++)
-	{
-		CHAN *ch = sp->chan + nch;
-
-		if (ch->dbch == NULL)
-			continue;		/* skip anonymous pvs */
-		/* Note: need not take programLock because state sets not yet
-		   running and CA channels not yet created */
-		sp->assignCount += 1;
-		if (ch->monitored)
-			sp->monitorCount++;	/* do it before pvVarCreate */
-	}
-
 	/*
 	 * For each channel: create pv object, then subscribe if monitored.
 	 */
@@ -101,6 +88,10 @@ pvStat seq_connect(SPROG *sp, boolean wait)
 		{
 			errlogSevPrintf(errlogFatal, "seq_connect: pvVarCreate() %s failure: "
 				"%s\n", dbch->dbName, pvVarGetMess(dbch->pvid));
+			if (ch->dbch->ssMetaData)
+				free(ch->dbch->ssMetaData);
+			free(ch->dbch->dbName);
+			free(ch->dbch);
 			continue;
 		}
 	}
@@ -258,17 +249,9 @@ static void proc_db_events(
 		}
 
 		/* Write value and meta data to shared buffers.
-		   Set the dirty flag only of this was a monitor event. */
+		   Set the dirty flag only if this was a monitor event. */
 		ss_write_buffer(ch, val, &meta, evtype == MON_COMPLETE);
 	}
-
-	/* Wake up each state set that uses this channel in an event */
-	seqWakeup(sp, ch->eventNum);
-
-	/* If there's an event flag associated with this channel, set it */
-	/* TODO: check if correct/documented to do this for non-monitor completions */
-	if (ch->efId > 0)
-		seq_efSet(sp->ss, ch->efId);
 
 	/* Signal completion */
 	switch (evtype)
@@ -282,6 +265,14 @@ static void proc_db_events(
 	default:
 		break;
 	}
+
+	/* If there's an event flag associated with this channel, set it */
+	/* TODO: check if correct/documented to do this for non-monitor completions */
+	if (ch->syncedTo)
+		seq_efSet(sp->ss, ch->syncedTo);
+
+	/* Wake up each state set that uses this channel in an event */
+	seqWakeup(sp, ch->eventNum);
 }
 
 struct putq_cp_arg {
@@ -319,7 +310,7 @@ static void proc_db_events_queued(SPROG *sp, CHAN *ch, pvValue *value)
 		);
 	}
 	/* Set event flag; note: it doesn't matter which state set we pass. */
-	seq_efSet(sp->ss, ch->efId);
+	seq_efSet(sp->ss, ch->syncedTo);
 	/* Wake up each state set that uses this channel in an event */
 	seqWakeup(sp, ch->eventNum);
 }
@@ -413,12 +404,20 @@ void seq_conn_handler(void *var, int connected)
 		DEBUG("%s disconnected from %s\n", ch->varName, dbch->dbName);
 		if (dbch->connected)
 		{
+			unsigned nss;
+
 			dbch->connected = FALSE;
 			sp->connectCount--;
 
 			if (ch->monitored)
 			{
 				seq_monitor(ch, FALSE);
+			}
+			/* terminate outstanding requests that wait for completion */
+			for (nss = 0; nss < sp->numSS; nss++)
+			{
+				epicsEventSignal(sp->ss[nss].getSemId[chNum(ch)]);
+				epicsEventSignal(sp->ss[nss].putSemId[chNum(ch)]);
 			}
 		}
 		else

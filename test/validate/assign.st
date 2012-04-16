@@ -6,6 +6,8 @@ in the file LICENSE that is included with this distribution.
 \*************************************************************************/
 program assignTest
 
+option +r;
+
 %%#include "../testSupport.h"
 
 int x = 0;
@@ -16,7 +18,7 @@ foreign pvStatERROR;
 #define NTESTS 3
 
 entry {
-    testPlan(NTESTS);
+    seq_test_init(NTESTS);
 }
 
 ss w {
@@ -46,6 +48,5 @@ ss r {
 }
 
 exit {
-    testDone();
     seq_test_done();
 }

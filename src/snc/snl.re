@@ -54,7 +54,7 @@ typedef struct Scanner {
 	uchar	*lim;	/* pointer to one position after last read char */
 	uchar	*top;	/* pointer to (one after) top of allocated buffer */
 	uchar	*eof;	/* pointer to (one after) last char in file (or 0) */
-	char	*file;	/* source file name */
+	const char *file;	/* source file name */
 	int	line;	/* line number */
 } Scanner;
 
@@ -258,11 +258,6 @@ snl:
 	"int32_t"	{ TYPEWORD(INT32T, 	"int32_t"); }
 	"uint32_t"	{ TYPEWORD(UINT32T,	"uint32_t"); }
 
-	"TRUE"		{ LITERAL(INTCON, integer_literal, "TRUE"); }
-	"FALSE"		{ LITERAL(INTCON, integer_literal, "FALSE"); }
-	"ASYNC"		{ LITERAL(INTCON, integer_literal, "ASYNC"); }
-	"SYNC"		{ LITERAL(INTCON, integer_literal, "SYNC"); }
-
 	LET (LET|DEC)*	{ IDENTIFIER(NAME, identifier, strdupft(s->tok, cursor)); }
 	("0" [xX] HEX+ IS?) | ("0" OCT+ IS?) | (DEC+ IS?) | (['] (ESC|[^\n\\'])* ['])
 			{ LITERAL(INTCON, integer_literal, strdupft(s->tok, cursor)); }
@@ -367,16 +362,7 @@ line_marker_str:
 /*!re2c
 	(["] (ESC|[^\n\\"])* ["])
 			{
-				uchar saved = cursor[-1];
-				char *str = (char *)(s->tok + line_marker_part + 1);
-				cursor[-1] = 0;
-				if (!s->file) {
-					s->file = strdup(str);
-				} else if (s->file && strcmp(str, s->file) != 0) {
-					free(s->file);
-					s->file = strdup(str);
-				}
-				cursor[-1] = saved;
+				s->file = strdupft(s->tok + line_marker_part + 1, cursor-1);
 				goto line_marker_skip;
 			}
 	NL		{
@@ -481,7 +467,7 @@ Expr *parse_program(const char *src_file)
 	void	*parser;	/* the (lemon generated) parser */
 
 	memset(&s, 0, sizeof(s));
-	s.file = strdup(src_file);
+	s.file = src_file;
 	s.line = 1;
 
 	parser = snlParserAlloc(malloc);

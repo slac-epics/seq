@@ -7,6 +7,8 @@ in the file LICENSE that is included with this distribution.
 /* Test state change statement */
 program changeTest
 
+option +r;
+
 %%#include <time.h>
 %%#include <stdlib.h>
 %%#include "../testSupport.h"
@@ -14,7 +16,7 @@ program changeTest
 #define MAX_TEST 50
 
 entry {
-    testPlan(MAX_TEST);
+    seq_test_init(MAX_TEST);
     /* uncomment for repeatability */
     /* srandom(12345); */
 }
@@ -72,6 +74,5 @@ ss main {
 }
 
 exit {
-    testDone();
     seq_test_done();
 }
