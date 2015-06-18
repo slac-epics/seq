@@ -21,7 +21,7 @@ PVKTL  = FALSE
 # You might want to change this to something like
 # RE2C = /path/to/your/re2c/installation/bin/re2c
 #RE2C = re2c$(HOSTEXE)
-RE2C = /reg/g/pcds/package/re2c/re2c-0.13.5/re2c
+RE2C = $(PACKAGE_SITE_TOP)/re2c/re2c-0.13.5/re2c
 
 # Parser generator
 LEMON = $(call PATH_FILTER,$(INSTALL_HOST_BIN)/lemon$(HOSTEXE))
