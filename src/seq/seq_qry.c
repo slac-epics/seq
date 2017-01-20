@@ -238,6 +238,9 @@ static int seqcarCollect(PROG *sp, void *param)
 	int 		printedProgName = 0;
 
 	pstats->nProgs++;
+#if	0
+        printf("seqcarCollect: sp->numChans %d\n", sp->numChans);
+#endif
 	for (nch = 0; nch < sp->numChans; nch++)
 	{
 		CHAN *ch = sp->chan + nch;
@@ -272,9 +275,9 @@ epicsShareFunc void epicsShareAPI seqcar(int level)
 
 	stats.level = level;
 	seqTraverseProg(seqcarCollect, (void *) &stats);
-	printf("Total programs=%d, channels=%d, connected=%d, disconnected=%d\n",
+	printf("Total programs=%d, channels=%d, connected=%d, disconnected %d\n",
 		stats.nProgs, stats.nChans, stats.nConn,
-		stats.nChans - stats.nConn);
+                stats.nChans - stats.nConn);
 }
 
 epicsShareFunc void seqGatherStats(
@@ -289,6 +292,16 @@ epicsShareFunc void seqGatherStats(
 	*num_programs = stats.nProgs;
 	*num_channels = stats.nChans;
 	*num_connected = stats.nConn;
+}
+
+epicsShareFunc void epicsShareAPI seqcaStats(struct seqStats *seqStats)
+{
+	seqTraverseProg(seqcarCollect, (void *) seqStats);
+#if	0
+	printf("Total programs=%d, channels=%d, connected=%d, disconnected=%d\n",
+		seqStats->nProgs, seqStats->nChans, seqStats->nConn,
+		seqStats->nChans - seqStats->nConn);
+#endif
 }
 
 /*

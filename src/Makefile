@@ -10,6 +10,9 @@ seq_DEPEND_DIRS += common
 
 DIRS += lemon
 
+DIRS += stats
+dev_DEPEND_DIRS = seq
+
 DIRS += snc
 seq_DEPEND_DIRS += common
 snc_DEPEND_DIRS += lemon

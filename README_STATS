@@ -1,0 +1,27 @@
+This will PV'ize the statistics as returned in the sequencer iocSh command 'seqcar'. The PVs are:
+
+    yourIOC:nPgms       <- the number of seq state programs
+    yourIOC:nChans      <- the number of channels
+    yourIOC:nConnect    <- the number of connected channels
+    yourIOC:nDisconnect <- the number of disconnected channels
+
+To include this in your application add the the following  to your application's 'xxxApp/src/Makefile'.
+
+    yourapplication_LIBS += seqCar
+
+and this to your 'xxxApp/src/xxxInclude.dbd'.
+
+    include "devSeqCar.dbd"
+
+and this to your xxxApp/Db/Makefile
+
+    DB_INSTALLS += $(SNCSEQ)/db/devSeqCar.db
+
+Add the following to your IOC startup.
+
+    dbLoadRecords("db/devSeqCar.db", "SIOC=yourIOCname")
+~
+~
+~
+~
+

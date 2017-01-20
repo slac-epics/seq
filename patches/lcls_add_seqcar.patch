@@ -1,0 +1,467 @@
+diff --git a/README_STATS b/README_STATS
+new file mode 100644
+index 0000000..8a74c8d
+--- /dev/null
++++ b/README_STATS
+@@ -0,0 +1,27 @@
++This will PV'ize the statistics as returned in the sequencer iocSh command 'seqcar'. The PVs are:
++
++    yourIOC:nPgms       <- the number of seq state programs
++    yourIOC:nChans      <- the number of channels
++    yourIOC:nConnect    <- the number of connected channels
++    yourIOC:nDisconnect <- the number of disconnected channels
++
++To include this in your application add the the following  to your application's 'xxxApp/src/Makefile'.
++
++    yourapplication_LIBS += seqCar
++
++and this to your 'xxxApp/src/xxxInclude.dbd'.
++
++    include "devSeqCar.dbd"
++
++and this to your xxxApp/Db/Makefile
++
++    DB_INSTALLS += $(SNCSEQ)/db/devSeqCar.db
++
++Add the following to your IOC startup.
++
++    dbLoadRecords("db/devSeqCar.db", "SIOC=yourIOCname")
++~
++~
++~
++~
++
+diff --git a/src/Makefile b/src/Makefile
+index e8e54f1..e9a00d4 100644
+--- a/src/Makefile
++++ b/src/Makefile
+@@ -10,6 +10,9 @@ seq_DEPEND_DIRS += common
+ 
+ DIRS += lemon
+ 
++DIRS += stats
++dev_DEPEND_DIRS = seq
++
+ DIRS += snc
+ seq_DEPEND_DIRS += common
+ snc_DEPEND_DIRS += lemon
+diff --git a/src/seq/seq_qry.c b/src/seq/seq_qry.c
+index 30583b9..348e205 100644
+--- a/src/seq/seq_qry.c
++++ b/src/seq/seq_qry.c
+@@ -238,6 +238,9 @@ static int seqcarCollect(PROG *sp, void *param)
+ 	int 		printedProgName = 0;
+ 
+ 	pstats->nProgs++;
++#if	0
++        printf("seqcarCollect: sp->numChans %d\n", sp->numChans);
++#endif
+ 	for (nch = 0; nch < sp->numChans; nch++)
+ 	{
+ 		CHAN *ch = sp->chan + nch;
+@@ -272,9 +275,9 @@ epicsShareFunc void epicsShareAPI seqcar(int level)
+ 
+ 	stats.level = level;
+ 	seqTraverseProg(seqcarCollect, (void *) &stats);
+-	printf("Total programs=%d, channels=%d, connected=%d, disconnected=%d\n",
++	printf("Total programs=%d, channels=%d, connected=%d, disconnected %d\n",
+ 		stats.nProgs, stats.nChans, stats.nConn,
+-		stats.nChans - stats.nConn);
++                stats.nChans - stats.nConn);
+ }
+ 
+ epicsShareFunc void seqGatherStats(
+@@ -291,6 +294,16 @@ epicsShareFunc void seqGatherStats(
+ 	*num_connected = stats.nConn;
+ }
+ 
++epicsShareFunc void epicsShareAPI seqcaStats(struct seqStats *seqStats)
++{
++	seqTraverseProg(seqcarCollect, (void *) seqStats);
++#if	0
++	printf("Total programs=%d, channels=%d, connected=%d, disconnected=%d\n",
++		seqStats->nProgs, seqStats->nChans, seqStats->nConn,
++		seqStats->nChans - seqStats->nConn);
++#endif
++}
++
+ /*
+  * seqQueueShow() - Show syncQ queue information for a state program.
+  */
+diff --git a/src/stats/Makefile b/src/stats/Makefile
+new file mode 100644
+index 0000000..8828e61
+--- /dev/null
++++ b/src/stats/Makefile
+@@ -0,0 +1,25 @@
++TOP = ../..
++
++include $(TOP)/configure/CONFIG
++#----------------------------------------
++#  ADD MACRO DEFINITIONS AFTER THIS LINE
++
++#  Device support declarations
++DBD += devSeqCar.dbd
++DB += devSeqCar.db
++
++USR_CFLAGS += -I$(TOP)/src/seq
++
++LIBRARY = seqCar
++seqDev_LIBS += seq pv 
++seqDev_LIBS += $(EPICS_BASE_IOC_LIBS)
++seq_DIR=$(INSTALL_LIB)
++
++LIBSRCS += devSeqCar.c
++
++include $(TOP)/configure/RULES
++#----------------------------------------
++#  ADD RULES AFTER THIS LINE
++
++# $(INSTALL_DBD)/seq.dbd needed by test/demo depends
++depends: $(INSTALL_DBDS)
+diff --git a/src/stats/devSeqCar.c b/src/stats/devSeqCar.c
+new file mode 100644
+index 0000000..fe49a92
+--- /dev/null
++++ b/src/stats/devSeqCar.c
+@@ -0,0 +1,293 @@
++/*************************************************************************\
++This file is distributed subject to a Software License Agreement found
++in the file LICENSE that is included with this distribution.
++\*************************************************************************/
++/* Device support to permit database access to sequencer internals
++ *
++ * This is experimental only. Note the following:
++ *
++ * 1. uses INST_IO (an unstructured string)
++ *
++ * 2. string is a command:
++ *    nPgms
++ *    nChans
++ *    nConnect
++ *    nDisconnect
++ * Original Auth:   Richard Dabney, SLAC
++ */
++
++#include <string.h>
++#include <stdio.h>
++#include <stdlib.h>
++
++#ifdef _WIN32
++#  include <malloc.h>
++#elif (__STDC_VERSION__ < 199901L) && !defined(__GNUC__)
++#  include <alloca.h>
++#endif
++
++#include "alarm.h"
++#include "dbDefs.h"
++#include "dbAccess.h"
++#include "recSup.h"
++#include "devSup.h"
++#include "link.h"
++#include "dbScan.h"
++#include "longinRecord.h"
++#include "epicsEvent.h"
++#include "epicsExport.h"
++
++#include "pv.h"
++#include "seqCom.h"
++#include "seqPvt.h"
++#include "seq_debug.h"
++
++typedef struct {
++    long	number;
++    DEVSUPFUN	report;
++    DEVSUPFUN	init;
++    DEVSUPFUN	init_record;
++    DEVSUPFUN   get_ioint_info;
++    DEVSUPFUN	read_or_write;
++    DEVSUPFUN	special_linconv;
++} DSET;
++
++static long liInit( struct longinRecord *rec );
++static long liRead( struct longinRecord *rec );
++static long liGetIoInitInfo(int cmd, struct longinRecord *rec, IOSCANPVT *ppvt);
++static DSET  devLiSeqCar = { 5, NULL, NULL, liInit, liGetIoInitInfo, liRead, NULL };
++epicsExportAddress(dset,devLiSeqCar);
++
++static void devSeqCarScanThreadSpawn(void *);
++static void devSeqCarScanThread(void *);
++
++static epicsThreadOnceId devSeqCarScanThreadOnceFlag = EPICS_THREAD_ONCE_INIT;
++static char*             devSeqCarScanThreadName     = "devSeqCarScan";
++static ELLLIST           devSeqCarScanList;
++
++/* Commands  */
++static char *nPgms          = "nPgms";
++static char *nChans         = "nChans";
++static char *nConnect       = "nConnect";
++static char *nDisconnect    = "nDisconnect";
++
++enum {
++    notUpdated = 0,
++    updated,
++    notFound
++};
++
++typedef enum {
++    seqCarShownPgms = 0,
++    seqCarShownChans,
++    seqCarShownConnect,
++    seqCarShownDisconnect,
++    seqCarShowsyntaxErr
++} seqCarShowVarType;
++
++typedef struct {
++    unsigned nPgms;
++    unsigned nChans;
++    unsigned nConnect;
++    unsigned nDisconnect;
++    char *syntaxErrMsg;
++} seqCarShowVar;
++
++typedef struct 
++{
++    int     level;
++    int     nPgms;
++    int     nChans;
++    int     nConnect;
++    int     nDisconnect;
++} seqCarStats;
++
++typedef struct {
++    ELLNODE               devScanNode;
++    IOSCANPVT             ioScanPvt;
++    seqCarShowVarType     type;
++    char                  progName[80];
++    char                  stateSetName[80];
++    char                  updateFlag;
++    epicsMutexId          mutexId;
++    seqCarShowVar         var;
++    seqCarStats           statsVar;
++} seqCarShowScanPvt;
++
++#define UPDATE_SEQCAR_VAR(UPDATEFLAG, SOURCE, TARGET) \
++        if((UPDATEFLAG) || ((TARGET) != (SOURCE))) {\
++            (TARGET) = (SOURCE); \
++            (UPDATEFLAG) = updated; \
++        }
++
++static seqCarShowScanPvt* seqCarShowScanPvtInit(struct link* link)
++{
++    seqCarShowScanPvt   *pvtPt;
++#if (__STDC_VERSION__ >= 199901L) || defined(__GNUC__)
++    char             inpStr[strlen(link->value.instio.string)+1];
++#else
++    char             *inpStr = (char *)alloca(strlen(link->value.instio.string)+1);
++#endif
++
++    pvtPt = (seqCarShowScanPvt *) malloc(sizeof(seqCarShowScanPvt));
++    if(!pvtPt) 
++        return NULL;
++
++    strcpy(inpStr,link->value.instio.string);
++
++    /* see if we have a hit for the command */
++    if (!strcmp(inpStr,nPgms))               
++        pvtPt->type = seqCarShownPgms;
++    else if(!strcmp(inpStr,nChans))         
++        pvtPt->type = seqCarShownChans;
++    else if(!strcmp(inpStr,nConnect))       
++        pvtPt->type = seqCarShownConnect;
++    else if(!strcmp(inpStr,nDisconnect))    
++        pvtPt->type = seqCarShownDisconnect;
++    else 
++    {
++        free(pvtPt);
++        return (NULL);
++    }
++
++    pvtPt->updateFlag = updated;
++    pvtPt->mutexId = epicsMutexCreate();
++    scanIoInit(&pvtPt->ioScanPvt);
++
++    return (pvtPt);
++}
++
++
++static long liInit( struct longinRecord *rec )
++{
++    struct link      *link   = &rec->inp;
++
++    /* check that link is of type INST_IO */
++    if ( link->type != INST_IO ) {
++        return S_db_badField;
++    }
++
++    rec->dpvt = (void *) seqCarShowScanPvtInit(link);
++    if(!rec->dpvt) 
++    {
++        return S_db_errArg;
++    }
++
++    epicsThreadOnce(&devSeqCarScanThreadOnceFlag, (void(*)(void *)) devSeqCarScanThreadSpawn, (void *) rec->dpvt);
++
++    ellAdd(&devSeqCarScanList, &(((seqCarShowScanPvt *) rec->dpvt)->devScanNode));
++
++    return 0;
++}
++
++static void devSeqCarScanThreadSpawn(void *dpvt)
++{
++    epicsUInt32 devSeqCarScanStack;
++
++    /* Spawn the Scan Task */
++    devSeqCarScanStack = epicsThreadGetStackSize(epicsThreadStackMedium);
++    epicsThreadCreate(devSeqCarScanThreadName, THREAD_PRIORITY, devSeqCarScanStack,
++                      (EPICSTHREADFUNC)devSeqCarScanThread,(void *) dpvt);
++}
++
++
++
++static void devSeqCarScanThread(void * dpvt)
++{
++    ELLLIST          *pdevSeqCarScanList = &devSeqCarScanList;
++    seqCarShowScanPvt   *pvtPt = (seqCarShowScanPvt *) dpvt;
++    seqCarShowVar       *varPt;
++    void seqcaStats(seqCarStats *);
++
++    while(!pdevSeqCarScanList->count) {
++        epicsThreadSleep(0.5);
++    }
++
++    while(TRUE) 
++    {
++        pvtPt = (seqCarShowScanPvt*) ellFirst(pdevSeqCarScanList);
++
++        seqCarStats stats = {0, 0, 0, 0};
++        seqcaStats(&stats);
++
++	do
++        {
++            varPt = &(pvtPt->var);
++
++            epicsMutexLock(pvtPt->mutexId);
++            switch(pvtPt->type)
++            {
++                case seqCarShownPgms:
++                    UPDATE_SEQCAR_VAR(pvtPt->updateFlag, stats.nPgms, varPt->nPgms);
++                    break;
++                case seqCarShownChans:
++                    UPDATE_SEQCAR_VAR(pvtPt->updateFlag, stats.nChans, varPt->nChans);
++                    break;
++                case seqCarShownConnect:
++                    UPDATE_SEQCAR_VAR(pvtPt->updateFlag, stats.nConnect, varPt->nConnect);
++                    break;
++                case seqCarShownDisconnect:
++                    stats.nDisconnect = stats.nChans - stats.nConnect;
++                    UPDATE_SEQCAR_VAR(pvtPt->updateFlag, stats.nDisconnect, varPt->nDisconnect);
++                    break;
++                case seqCarShowsyntaxErr:
++                    break;
++                default:
++                    break;
++            }
++            epicsMutexUnlock(pvtPt->mutexId);
++
++            if(pvtPt->updateFlag) 
++            {
++                pvtPt->updateFlag = notUpdated;
++                scanIoRequest(pvtPt->ioScanPvt);
++            }
++        } while( (pvtPt = (seqCarShowScanPvt*) ellNext(&pvtPt->devScanNode)) );
++        epicsThreadSleep(10.0);
++    } 
++}
++ 
++static long liRead( struct longinRecord *rec )
++{
++    seqCarShowScanPvt    *pvtPt = (seqCarShowScanPvt *)rec->dpvt;
++    seqCarShowVar        *varPt;
++
++    if(!pvtPt || pvtPt->updateFlag == notFound ) 
++    {
++        return 0;
++    }
++    varPt = &(pvtPt->var);
++
++    epicsMutexLock(pvtPt->mutexId);
++    switch(pvtPt->type){
++        case seqCarShownPgms:          
++            rec->val = pvtPt->var.nPgms;     
++            break;
++        case seqCarShownChans:         
++            rec->val = pvtPt->var.nChans;     
++            break;
++        case seqCarShownConnect:       
++            rec->val = pvtPt->var.nConnect;     
++            break;
++        case seqCarShownDisconnect:     
++            rec->val = pvtPt->var.nDisconnect;     
++            break;
++        case seqCarShowsyntaxErr:     
++            break;
++    }
++    epicsMutexUnlock(pvtPt->mutexId);
++
++    return 0;
++}
++       
++static long liGetIoInitInfo(int cmd, struct longinRecord *rec, IOSCANPVT *ppvt)
++{
++    seqCarShowScanPvt  *pvtPt = (seqCarShowScanPvt *)rec->dpvt;
++
++    if (!pvtPt)
++        return S_db_badField;
++    *ppvt = pvtPt->ioScanPvt;
++
++    return 0;
++}
++
+diff --git a/src/stats/devSeqCar.db b/src/stats/devSeqCar.db
+new file mode 100644
+index 0000000..d27a043
+--- /dev/null
++++ b/src/stats/devSeqCar.db
+@@ -0,0 +1,33 @@
++record(longin, $(SIOC):nPgms) {
++	field(DESC, "number of seq state programs")
++	field(DTYP, "Sequencer CAR")
++	field(INP, "@nPgms")
++	field(SCAN, "I/O Intr")
++}
++record(longin, $(SIOC):nChans) {
++	field(DESC, "number of seq state channels")
++	field(DTYP, "Sequencer CAR")
++	field(INP, "@nChans")
++	field(SCAN, "I/O Intr")
++}
++record(longin, $(SIOC):nConnect) {
++	field(DESC, "number of seq state connections")
++	field(DTYP, "Sequencer CAR")
++	field(INP, "@nConnect")
++	field(SCAN, "I/O Intr")
++}
++record(longin, $(SIOC):nDisconnect) {
++	field(DESC, "nchans - n-Connect")
++	field(DTYP, "Sequencer CAR")
++	field(PINI, "1")
++	field(INP, "@nDisconnect")
++	field(HIGH, "1")
++	field(HIHI, "1")
++	field(HSV, "MAJOR")
++	field(HHSV, "MAJOR")
++	field(SCAN, "I/O Intr")
++}
++
++
++
++
+diff --git a/src/stats/devSeqCar.dbd b/src/stats/devSeqCar.dbd
+new file mode 100644
+index 0000000..ff282bb
+--- /dev/null
++++ b/src/stats/devSeqCar.dbd
+@@ -0,0 +1,2 @@
++device(longin, INST_IO, devLiSeqCar, "Sequencer CAR")
++

@@ -1,0 +1,2 @@
+device(longin, INST_IO, devLiSeqCar, "Sequencer CAR")
+

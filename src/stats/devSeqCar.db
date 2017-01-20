@@ -1,0 +1,33 @@
+record(longin, $(SIOC):nPgms) {
+	field(DESC, "number of seq state programs")
+	field(DTYP, "Sequencer CAR")
+	field(INP, "@nPgms")
+	field(SCAN, "I/O Intr")
+}
+record(longin, $(SIOC):nChans) {
+	field(DESC, "number of seq state channels")
+	field(DTYP, "Sequencer CAR")
+	field(INP, "@nChans")
+	field(SCAN, "I/O Intr")
+}
+record(longin, $(SIOC):nConnect) {
+	field(DESC, "number of seq state connections")
+	field(DTYP, "Sequencer CAR")
+	field(INP, "@nConnect")
+	field(SCAN, "I/O Intr")
+}
+record(longin, $(SIOC):nDisconnect) {
+	field(DESC, "nchans - n-Connect")
+	field(DTYP, "Sequencer CAR")
+	field(PINI, "1")
+	field(INP, "@nDisconnect")
+	field(HIGH, "1")
+	field(HIHI, "1")
+	field(HSV, "MAJOR")
+	field(HHSV, "MAJOR")
+	field(SCAN, "I/O Intr")
+}
+
+
+
+
