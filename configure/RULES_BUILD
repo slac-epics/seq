@@ -82,11 +82,9 @@ endef
 	$(ECHO) "compiling $< to C"
 	$(COMPILE.snl)
 
-CLEANS += $(wildcard *.d)
+clean: snc_clean
 
-ifeq ($(BASE_3_14),YES)
-clean::
-	$(RM) $(CLEANS)
-endif
+snc_clean:
+	@$(RM) $(SNC_CSRC_FILES)
 
 -include $(ST_DEPENDS_FILES)
