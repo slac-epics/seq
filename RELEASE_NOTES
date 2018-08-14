@@ -1,3 +1,6 @@
+R2.2.4-1.1:   14-Aug-2018, B. Hill (bhill)
+	Added support for installing archive template file devSeqCar.tpl-arch
+
 R2.2.4-1.0:   20-Jan-2017, H. Slepicka (slepicka)
     Applied patch <>/patches/lcls_add_seqcar.patch 
         Add stats devSeqCar
