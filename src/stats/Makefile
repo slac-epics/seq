@@ -17,6 +17,8 @@ seq_DIR=$(INSTALL_LIB)
 
 LIBSRCS += devSeqCar.c
 
+ARCHIVE += devSeqCar.tpl-arch
+
 include $(TOP)/configure/RULES
 #----------------------------------------
 #  ADD RULES AFTER THIS LINE

@@ -1,7 +1,9 @@
 RELEASE_SITE
+archive/
+html/
 O.*
-db
-dbd
-include
-lib
-bin
+db/
+dbd/
+include/
+lib/
+bin/

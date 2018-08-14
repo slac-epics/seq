@@ -1,0 +1,5 @@
+# devSeqCar.tpl-arch
+$(SIOC):nPgms			1	monitor
+$(SIOC):nChans			1	monitor
+$(SIOC):nConnect		1	monitor
+$(SIOC):nDisconnect		1	monitor
