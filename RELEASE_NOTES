@@ -1,3 +1,6 @@
+R2.2.4-1.2:   2019-09-27 Bruce Hill
+	Fix build errors from not removing potentially read-only target files.
+
 R2.2.4-1.1:   14-Aug-2018, B. Hill (bhill)
 	Added support for installing archive template file devSeqCar.tpl-arch
 
