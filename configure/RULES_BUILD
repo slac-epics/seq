@@ -67,6 +67,7 @@ endef
 # Rules
 
 %.st$(DEP): %.st
+	@$(RM) $@
 	$(MKMF) -m $@ $(USR_VPATH) $(ALL_SRC_DIRS) $*.i $<
 
 %.i: %.st
@@ -76,10 +77,12 @@ endef
 
 %.c: %.i $(SNC)
 	$(ECHO) "compiling $< to C"
+	@$(RM) $@
 	$(COMPILE.snl)
 
 %.c: %.stt $(SNC)
 	$(ECHO) "compiling $< to C"
+	@$(RM) $@
 	$(COMPILE.snl)
 
 clean: snc_clean

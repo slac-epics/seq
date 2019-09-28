@@ -128,27 +128,33 @@ vxTestHarness.dbd$(DEP):
 endif
 
 $(REGRESSION_TESTS_WITH_DB:%=%Ioc.t) $(REGRESSION_TESTS_REMOTE_ONLY:%=%Ioc.t): %Ioc.t: %$(EXE) ../makeTestfile.pl
+	@$(RM) $@
 	$(PERL) ../makeTestfile.pl $@ $* $< ioc $(USE_VALGRIND)
 
 $(REGRESSION_TESTS:%=%.t): %.t: %$(EXE) ../makeTestfile.pl
+	@$(RM) $@
 	$(PERL) ../makeTestfile.pl $@ $* $< noioc $(USE_VALGRIND)
 
 norace.i race.i: ../raceCommon.st
 pvSyncDb.i pvSyncNoDb.i: ../pvSync.st
 
 $(COMMON_DIR)/vxTestHarnessRegistrars.dbd: ../makeTestDbd.pl
+	@$(RM) $@
 	$(PERL) ../makeTestDbd.pl $(REGRESSION_TESTS_vxWorks) > $@
 
 $(COMMON_DIR)/vxTestHarness.dbd: $(COMMON_DIR)/vxTestHarnessRegistrars.dbd
 
 $(COMMON_DIR)/vxTestHarness.db: $(REGRESSION_TESTS_WITH_DB:%=../%.db)
+	@$(RM) $@
 	$(PERL) -ne print $(REGRESSION_TESTS_WITH_DB:%=../%.db) > $@
 
 st.cmd: ../st.cmd.vxWorks ../makeStCmd.pl
+	@$(RM) $@
 	$(CP) ../st.cmd.vxWorks $@
 	$(PERL) -MExtUtils::Command -e chmod 644 $@
 
 testHarness.cmd: ../makeStCmd.pl
+	@$(RM) $@
 	$(PERL) ../makeStCmd.pl $(REGRESSION_TESTS_vxWorks) > $@
 	$(PERL) -MExtUtils::Command -e chmod 644 $@
 
